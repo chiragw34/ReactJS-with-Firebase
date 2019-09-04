@@ -192,3 +192,4 @@ exports.uploadImage = (req, res) => {
   });
   busboy.end(req.rawBody);
 };
+//https://firebasestorage.googleapis.com/v0/b/socialapp-40c09.appspot.com/o/no-img.jpg?alt=media
