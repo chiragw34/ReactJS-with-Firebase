@@ -61,7 +61,9 @@ exports.signup = (req, res) => {
       if (err.code === "auth/email-already-in-use") {
         return res.status(400).json({ email: "Email is already in use!!!" });
       } else {
-        return res.status(500).json({ error: err.code });
+        return res
+          .status(500)
+          .json({ error: "Something went wrong, please try again" });
       }
     });
 };
@@ -88,11 +90,9 @@ exports.login = (req, res) => {
     })
     .catch(err => {
       console.error(err);
-      if (err.code === "auth/wrong-password") {
-        return res
-          .status(403)
-          .json({ general: "Wrong credentials, please try again" });
-      } else return res.status(500).json({ error: err.code });
+      return res
+        .status(403)
+        .json({ general: "Wrong credentials, please try again" });
     });
 };
 
@@ -251,17 +251,19 @@ exports.uploadImage = (req, res) => {
   busboy.end(req.rawBody);
 };
 
-exports.markNotificationsRead = (req, res) =>{
+exports.markNotificationsRead = (req, res) => {
   let batch = db.batch();
   req.body.forEach(notificationId => {
     const notification = db.doc(`/notifications/${notificationId}`);
-    batch.update(notification, {read:true});
-  })
-  batch.commit().then(()=>{
-    return res.json({message: 'notifications marked read'});
-  })
-  .catch(err =>{
-    console.error(err);
-    return res.status(500).json({error: err.code})
-  })
-}
+    batch.update(notification, { read: true });
+  });
+  batch
+    .commit()
+    .then(() => {
+      return res.json({ message: "notifications marked read" });
+    })
+    .catch(err => {
+      console.error(err);
+      return res.status(500).json({ error: err.code });
+    });
+};

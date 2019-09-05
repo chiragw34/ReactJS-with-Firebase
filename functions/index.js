@@ -33,8 +33,8 @@ app.delete("/scream/:screamId", FBAuth, deleteScream); // to delete scream with 
 
 //User routes
 app.get("/user", FBAuth, getAuthenticatedUser); // to get authenticated user
-app.get('/user/:handle', getUserDetails); // to get user details using handle
-app.post('/notifications', FBAuth , markNotificationsRead); // to mark notifications read
+app.get("/user/:handle", getUserDetails); // to get user details using handle
+app.post("/notifications", FBAuth, markNotificationsRead); // to mark notifications read
 app.post("/signup", signup); // sign up the user
 app.post("/login", login); // log in the user
 app.post("/user/image", FBAuth, uploadImage); // to upload profile image
@@ -47,10 +47,14 @@ exports.createNotificationOnLike = functions
   .region("asia-east2")
   .firestore.document("likes/{id}")
   .onCreate(snapshot => {
-    db.doc(`/screams/${snapshot.data().screamId}`)
+    return db
+      .doc(`/screams/${snapshot.data().screamId}`)
       .get()
       .then(doc => {
-        if (doc.exists) {
+        if (
+          doc.exists &&
+          doc.data().userHandle !== snapshot.data().userHandle
+        ) {
           return db.doc(`/notifications/${snapshot.id}`).set({
             createdAt: new Date().toISOString(),
             recipient: doc.data().userHandle,
@@ -61,24 +65,16 @@ exports.createNotificationOnLike = functions
           });
         }
       })
-      .then(() => {
-        return;
-      })
-      .catch(err => {
-        console.error(err);
-        return;
-      });
+      .catch(err => console.error(err));
   });
 
 exports.deleteNotificationOnUnlike = functions
   .region("asia-east2")
   .firestore.document("likes/{id}")
   .onDelete(snapshot => {
-    db.doc(`/notifications/${snapshot.id}`)
+    return db
+      .doc(`/notifications/${snapshot.id}`)
       .delete()
-      .then(() => {
-        return;
-      })
       .catch(err => {
         console.error(err);
         return;
@@ -89,10 +85,14 @@ exports.createNotificationOnComment = functions
   .region("asia-east2")
   .firestore.document("comments/{id}")
   .onCreate(snapshot => {
-    db.doc(`/screams/${snapshot.data().screamId}`)
+    return db
+      .doc(`/screams/${snapshot.data().screamId}`)
       .get()
       .then(doc => {
-        if (doc.exists) {
+        if (
+          doc.exists &&
+          doc.data().userHandle !== snapshot.data().userHandle
+        ) {
           return db.doc(`/notifications/${snapshot.id}`).set({
             createdAt: new Date().toISOString(),
             recipient: doc.data().userHandle,
@@ -102,9 +102,6 @@ exports.createNotificationOnComment = functions
             screamId: doc.id
           });
         }
-      })
-      .then(() => {
-        return;
       })
       .catch(err => {
         console.error(err);
