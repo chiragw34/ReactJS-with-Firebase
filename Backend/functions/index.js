@@ -1,6 +1,10 @@
 const functions = require("firebase-functions");
 const app = require("express")();
 const FBAuth = require("./util/fbAuth"); //Authentication for protected routes
+
+const cors = require("cors");
+app.use(cors());
+
 const { db } = require("./util/admin");
 
 const {
@@ -144,13 +148,19 @@ exports.onScreamDelete = functions
         data.forEach(doc => {
           batch.delete(db.doc(`/comments/${doc.id}`));
         });
-        return db.collection("likes").where("screamId", "==", screamId).get();
+        return db
+          .collection("likes")
+          .where("screamId", "==", screamId)
+          .get();
       })
       .then(data => {
         data.forEach(doc => {
           batch.delete(db.doc(`/likes/${doc.id}`));
         });
-        return db.collection("notifications").where("screamId", "==", screamId).get();
+        return db
+          .collection("notifications")
+          .where("screamId", "==", screamId)
+          .get();
       })
       .then(data => {
         data.forEach(doc => {
